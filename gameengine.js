@@ -135,6 +135,30 @@ GameEngine.prototype.loop = function () {
     this.wheel = null;
 }
 
+GameEngine.prototype.save = function () {
+    let saveState = {};
+    saveState.entities = [];
+    this.entities.forEach(ent => {
+        if (ent instanceof Entity)
+            saveState.entities.push(this.saveEntity(ent));
+    });
+    return { studentname:"Mercedes Chea", statename:"aState", data:saveState};
+}
+
+GameEngine.prototype.load = function (saveState) {
+    this.entities = [];
+}
+
+GameEngine.prototype.saveEnt = function (ent) {
+    let state = {};
+    state.color = ent.color;
+    state.radius = ent.radius;
+    state.velocity = ent.velocity;
+    state.x = ent.x;
+    state.y = ent.y;
+    return state;
+}
+
 function Entity(game, x, y) {
     this.game = game;
     this.x = x;

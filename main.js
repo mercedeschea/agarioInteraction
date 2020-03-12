@@ -1,3 +1,4 @@
+const socket = io.connect("http://24.16.255.56:8888");
 
 // GameBoard code below
 
@@ -104,18 +105,26 @@ class Circle {
                 // creates new circles w random colors
                 if (this.color === ent.color) {
                     console.log('same color');
+                    console.log('current this: ', this);
+                    console.log('current ent', ent);
                     var circleArr = [this, ent];
                     var randColor1 = this.colors[Math.floor(Math.random() * this.colors.length)];
                     var randColor2 = this.colors[Math.floor(Math.random() * this.colors.length)];
                     var randSize1 = Math.floor(Math.random() * 10);
                     var randSize2 = Math.floor(Math.random() * 10);
                     // randCircle.color = randColor;
-                    var thisSmallCircle = new Circle(this.game, randColor1, randSize1);
-                    var entSmallCircle = new Circle(this.game, randColor2, randSize2);
-                    this.game.addEntity(thisSmallCircle);
-                    this.game.addEntity(entSmallCircle);
-                    this.removeFromWorld = true;
-                    ent.removeFromWorld = true;
+                    this.color = randColor1;
+                    this.radius = randSize1;
+                    //ent.color = randColor2;
+                    //ent.radius = randSize2;
+                    console.log('new this: ', this)
+                    console.log('new ent: ', ent);
+                    // var thisSmallCircle = new Circle(this.game, randColor1, randSize1);
+                    var newEntCircle = new Circle(this.game, randColor2, randSize2);
+                    // this.game.addEntity(thisSmallCircle);
+                    this.game.addEntity(newEntCircle);
+                    // this.removeFromWorld = true;
+                    //ent.removeFromWorld = true;
                 }
 
 
@@ -248,10 +257,46 @@ ASSET_MANAGER.queueDownload("./img/black.png");
 ASSET_MANAGER.queueDownload("./img/white.png");
 
 ASSET_MANAGER.downloadAll(function () {
+    // console.log("starting up da sheild");
+    // var canvas = document.getElementById('gameWorld');
+    // var ctx = canvas.getContext('2d');
+
+    
+
+    // var gameEngine = new GameEngine();
+    // var redCircle = new Circle(gameEngine, "Red");
+    // redCircle.setIt();
+    // gameEngine.addEntity(redCircle);
+
+
+    // // blueCircle = new Circle(gameEngine, "Blue");
+    // // gameEngine.addEntity(blueCircle);
+    // for (var i = 0; i < 5; i++) {
+    //     blueCircle = new Circle(gameEngine, "Blue", 10);
+    //     gameEngine.addEntity(blueCircle);
+    // }
+    // for (var i = 0; i < 5; i++) {
+    //     greenCircle = new Circle(gameEngine, "Green", 10);
+    //     gameEngine.addEntity(greenCircle);
+    // }
+    // for (var i = 0; i < 5; i++) {
+    //     redCircle = new Circle(gameEngine, "Red", 10);
+    //     gameEngine.addEntity(redCircle);
+    // }
+    // for (var i = 0; i < 5; i++) {
+    //     whiteCircle = new Circle(gameEngine, "White", 10);
+    //     gameEngine.addEntity(whiteCircle);
+    // }
+    // gameEngine.init(ctx);
+    // gameEngine.start();
+});
+
+window.onload = function () {
     console.log("starting up da sheild");
     var canvas = document.getElementById('gameWorld');
     var ctx = canvas.getContext('2d');
 
+    
 
     var gameEngine = new GameEngine();
     var redCircle = new Circle(gameEngine, "Red");
@@ -279,4 +324,39 @@ ASSET_MANAGER.downloadAll(function () {
     }
     gameEngine.init(ctx);
     gameEngine.start();
-});
+    var socket = io.connect("http://24.16.255.56:8888");
+  
+    socket.on("load", function (data) {
+        gameEngine.entities = [];
+        for (var i = 0; i < data.data.length; i++) {
+            newEnt = new Circle(gameEngine, data.data[i].color, data.data[i].radius);
+            newEnt.velocity = data.data[i].velocity;
+            newEnt.x = data.data[i].x;
+            newEnt.y = data.data[i].y;
+            gameEngine.entities.push(newEnt);
+        }
+        console.log(data.data);
+    });
+  
+    var text = document.getElementById("text");
+    var saveButton = document.getElementById("save");
+    var loadButton = document.getElementById("load");
+  
+    saveButton.onclick = function () {
+      console.log("save");
+    //   text.innerHTML = "Saved."
+      var array = [];
+      for (var i = 0; i < gameEngine.entities.length; i++) {
+          array.push(gameEngine.saveEnt(gameEngine.entities[i]));
+      }
+      socket.emit("save", { studentname: "Mercedes Chea", statename: "aState", data: array});
+    };
+  
+    loadButton.onclick = function () {
+      console.log("load");
+    //   text.innerHTML = "Loaded."
+      socket.emit("load", { studentname: "Mercedes Chea", statename: "aState" });
+    };
+  
+  };
+  
